@@ -1,0 +1,65 @@
+<?xml version="1.0"?>
+<config>
+  <modules>
+    <Zeo_CustomerDiscount>
+      <version>1.0.0</version>
+    </Zeo_CustomerDiscount>
+  </modules>
+  <global>
+    <helpers>
+      <customerdiscount>
+        <class>Zeo_CustomerDiscount_Helper</class>
+      </customerdiscount>
+    </helpers>
+	<models>
+	  <customerdiscount>
+		<class>Zeo_CustomerDiscount_Model</class>
+		<resourceModel>customerdiscount_mysql4</resourceModel>
+	  </customerdiscount>
+	</models>
+	
+	<resources>
+	  <zeocustomerdiscount_setup>
+		<setup>
+		  <module>Zeo_CustomerDiscount</module>
+		  <class>Mage_Customer_Model_Entity_Setup</class>
+		</setup>
+		<connection>
+		  <use>core_setup</use>
+		</connection>
+	  </zeocustomerdiscount_setup>
+	  <zeocustomerdiscount_write>
+		<connection>
+		  <use>core_write</use>
+		</connection>
+	  </zeocustomerdiscount_write>
+	  <zeocustomerdiscount_read>
+		<connection>
+		  <use>core_read</use>
+		</connection>
+	  </zeocustomerdiscount_read>
+	</resources>
+    <events>
+	  <sales_quote_collect_totals_after>
+        <observers>
+          <zeo_cd_sales_quote_collect_totals_after> 
+            <type>singleton</type> 
+            <class>customerdiscount/observer</class> 
+            <method>setDiscount</method>  
+            <args></args> 
+          </zeo_cd_sales_quote_collect_totals_after>
+        </observers>
+      </sales_quote_collect_totals_after>
+    
+      <checkout_type_onepage_save_order_after>
+			<observers>
+				<zeo_cd_checkout_type_onepage_save_order_after>
+					<class>customerdiscount/observer</class>
+					<method>saveOrderAfter</method>
+				</zeo_cd_checkout_type_onepage_save_order_after>
+			</observers>
+	</checkout_type_onepage_save_order_after>
+	
+    </events>
+  </global>
+</config> 
