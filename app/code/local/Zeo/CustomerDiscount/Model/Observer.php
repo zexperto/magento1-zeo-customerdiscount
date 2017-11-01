@@ -18,6 +18,10 @@ class Zeo_CustomerDiscount_Model_Observer
     $quote          = $observer->getEvent()->getQuote();
     $quoteid        = $quote->getId();
     $discountAmount = Mage::helper('customerdiscount')->getCustomerDiscount();
+    $discountPercent = Mage::helper('customerdiscount')->getCustomerDiscount(true);
+    $apply_tax_discount = Mage::helper('customerdiscount')->getApplyDiscountonTax();
+    
+    $tax_value = 0;
     if ($quoteid) {
       if ($discountAmount > 0) {
         $total       = $quote->getBaseSubtotal();
@@ -42,6 +46,18 @@ class Zeo_CustomerDiscount_Model_Observer
 
           $address->collectTotals();
 
+          // Tax
+          if($apply_tax_discount == true){
+            $tax_amount = $address->getTaxAmount();
+              $tax_value = $discountPercent*$tax_amount/100;
+              $address->setTaxAmount($tax_amount - $tax_value);
+              
+              $base_tax_amount = $address->getBaseTaxAmount();
+              $base_tax_value = $discountPercent*$base_tax_amount/100;
+              $address->setBaseTaxAmount($base_tax_amount - $base_tax_value);
+          }
+          // End Tax
+          
           $quote->setSubtotal((float) $quote->getSubtotal() + $address->getSubtotal());
           $quote->setBaseSubtotal((float) $quote->getBaseSubtotal() + $address->getBaseSubtotal());
 
@@ -57,19 +73,19 @@ class Zeo_CustomerDiscount_Model_Observer
 
           $quote ->save();
 
-          $quote->setGrandTotal($quote->getBaseSubtotal() - $discountAmount);
-          $quote->setBaseGrandTotal($quote->getBaseSubtotal() - $discountAmount);
-          $quote->setSubtotalWithDiscount($quote->getBaseSubtotal() - $discountAmount);
-          $quote->setBaseSubtotalWithDiscount($quote->getBaseSubtotal() - $discountAmount);
+          $quote->setGrandTotal($quote->getBaseSubtotal() - $discountAmount -$tax_value);
+          $quote->setBaseGrandTotal($quote->getBaseSubtotal() - $discountAmount - $base_tax_value);
+          $quote->setSubtotalWithDiscount($quote->getBaseSubtotal() - $discountAmount -$tax_value);
+          $quote->setBaseSubtotalWithDiscount($quote->getBaseSubtotal() - $discountAmount -$base_tax_value);
           $quote->save();
 
 
           if ($address->getAddressType() == $canAddItems) {
             //echo $address->setDiscountAmount; exit;
-            $address->setSubtotalWithDiscount((float) $address->getSubtotalWithDiscount() - $discountAmount);
-            $address->setGrandTotal((float) $address->getGrandTotal() - $discountAmount);
-            $address->setBaseSubtotalWithDiscount((float) $address->getBaseSubtotalWithDiscount() - $discountAmount);
-            $address->setBaseGrandTotal((float) $address->getBaseGrandTotal() - $discountAmount);
+              $address->setSubtotalWithDiscount((float) $address->getSubtotalWithDiscount() - $discountAmount -$tax_value);
+              $address->setGrandTotal((float) $address->getGrandTotal() - $discountAmount - $tax_value);
+              $address->setBaseSubtotalWithDiscount((float) $address->getBaseSubtotalWithDiscount() - $discountAmount - $base_tax_value);
+              $address->setBaseGrandTotal((float) $address->getBaseGrandTotal() - $discountAmount - $base_tax_value);
 
             if ($address->getDiscountDescription()) {
               $address->setDiscountAmount( - ($address->getDiscountAmount() - $discountAmount));
